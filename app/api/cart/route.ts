@@ -60,7 +60,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       );
     }
 
-    const cart = await CartService.addToCart(userId, sessionId as string | null | undefined, {
+    const cart = await CartService.addToCart(userId, sessionId ?? undefined, {
       productVariantId,
       quantity,
       price,
