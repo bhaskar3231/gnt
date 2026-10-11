@@ -27,7 +27,7 @@ export class CartService {
    */
   static async addToCart(
     userId: string | undefined,
-    sessionId: string | null,
+    sessionId: string | null | undefined,
     item: ICartItem
   ): Promise<ICart> {
     if (!userId && !sessionId) {
