@@ -6,12 +6,8 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
-const razorpayKeyId = process.env.RAZORPAY_KEY_ID || '';
-const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || '';
-
-if (!razorpayKeyId || !razorpayKeySecret) {
-  console.warn('Razorpay credentials not fully configured');
-}
+const razorpayKeyId = process.env.RAZORPAY_KEY_ID || 'rzp_placeholder';
+const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || 'rzp_placeholder_secret';
 
 const razorpay = new Razorpay({
   key_id: razorpayKeyId,

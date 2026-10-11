@@ -6,16 +6,19 @@ export interface ISiteSettings extends Document {
   favicon?: string;
   contactEmail: string;
   phone: string;
+  address?: string;
   socialLinks?: {
     facebook?: string;
     instagram?: string;
     twitter?: string;
     linkedin?: string;
+    youtube?: string;
   };
   currency: string;
   announcementBar?: {
     text: string;
     isActive: boolean;
+    bgColor?: string;
   };
   footer?: {
     aboutText?: string;
@@ -50,11 +53,13 @@ const siteSettingsSchema = new Schema<ISiteSettings>(
       type: String,
       required: true,
     },
+    address: String,
     socialLinks: {
       facebook: String,
       instagram: String,
       twitter: String,
       linkedin: String,
+      youtube: String,
     },
     currency: {
       type: String,
@@ -64,6 +69,7 @@ const siteSettingsSchema = new Schema<ISiteSettings>(
     announcementBar: {
       text: String,
       isActive: Boolean,
+      bgColor: String,
     },
     footer: {
       aboutText: String,
