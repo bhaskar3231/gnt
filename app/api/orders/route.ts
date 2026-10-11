@@ -5,7 +5,48 @@ import { OrderService } from '@/lib/services/OrderService';
 import { CartService } from '@/lib/services/CartService';
 import { ValidationService } from '@/lib/services/ValidationService';
 import { User } from '@/models/User';
+import { Order } from '@/models/Order';
 import { ApiResponse } from '@/types';
+
+/**
+ * GET /api/orders
+ * Get all orders for the authenticated user
+ */
+export async function GET(_request: NextRequest): Promise<NextResponse<ApiResponse<any>>> {
+  try {
+    await dbConnect();
+
+    const session = await auth();
+    const userId = session?.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const user = await User.findOne({ clerkId: userId });
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    const orders = await Order.find({ customerId: user._id })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return NextResponse.json({ success: true, data: orders });
+  } catch (error) {
+    console.error('Orders fetch error:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch orders' },
+      { status: 500 }
+    );
+  }
+}
 
 /**
  * POST /api/orders

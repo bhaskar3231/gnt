@@ -146,6 +146,24 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<ApiResp
       );
     }
 
+    // Try to parse body — if it contains productVariantId, remove just that item
+    let productVariantId: string | undefined;
+    try {
+      const body = await request.json();
+      productVariantId = body?.productVariantId;
+    } catch {
+      // No body or non-JSON body — fall through to clear all
+    }
+
+    if (productVariantId) {
+      await CartService.removeFromCart(userId, sessionId ?? null, productVariantId);
+      return NextResponse.json({
+        success: true,
+        data: null,
+        message: 'Item removed from cart',
+      });
+    }
+
     await CartService.clearCart(userId, sessionId as string | null | undefined);
 
     return NextResponse.json({
