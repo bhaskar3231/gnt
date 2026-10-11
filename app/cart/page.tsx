@@ -91,6 +91,7 @@ export default function CartPage() {
       const data = await res.json();
       if (data.success) {
         setCart(data.data);
+        window.dispatchEvent(new Event("cart-updated"));
       }
     } catch {
       // revert on error
@@ -121,8 +122,9 @@ export default function CartPage() {
         body: JSON.stringify({ productVariantId }),
       });
       const data = await res.json();
-      if (data.success && data.data) {
-        setCart(data.data);
+      if (data.success) {
+        setCart(data.data ?? { items: [], subtotal: 0, total: 0 });
+        window.dispatchEvent(new Event("cart-updated"));
       }
     } catch {
       fetchCart();

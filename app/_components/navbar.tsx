@@ -19,7 +19,7 @@ export default function Navbar() {
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const refreshCartCount = () => {
     fetch("/api/cart")
       .then((r) => r.json())
       .then((data) => {
@@ -28,6 +28,17 @@ export default function Navbar() {
         }
       })
       .catch(() => {});
+  };
+
+  // Refresh on mount and whenever auth state changes
+  useEffect(() => {
+    refreshCartCount();
+  }, [isSignedIn]);
+
+  // Listen for custom cart-updated event fired by add-to-cart and cart page
+  useEffect(() => {
+    window.addEventListener("cart-updated", refreshCartCount);
+    return () => window.removeEventListener("cart-updated", refreshCartCount);
   }, []);
 
   useEffect(() => {
@@ -107,7 +118,7 @@ export default function Navbar() {
           {/* Right side actions */}
           <div className="flex items-center gap-4">
             {/* Cart */}
-            <Link href="/cart" className="relative p-1">
+            <Link href="/cart" aria-label="Cart" className="relative p-1">
               <ShoppingCart className="w-6 h-6 text-gray-700" />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">

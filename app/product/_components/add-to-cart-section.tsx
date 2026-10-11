@@ -49,6 +49,7 @@ export default function AddToCartSection({ variants, productId }: Props) {
         throw new Error(data.error ?? "Failed to add to cart");
       }
       setAdded(true);
+      window.dispatchEvent(new Event("cart-updated"));
       setTimeout(() => setAdded(false), 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

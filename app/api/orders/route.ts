@@ -92,16 +92,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       );
     }
 
-    // Get user
-    const user = await User.findOne({ clerkId: userId });
+    // Get or auto-create user record (Clerk sign-in doesn't create a MongoDB user)
+    let user = await User.findOne({ clerkId: userId });
     if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'User not found',
-        },
-        { status: 404 }
-      );
+      // Pull basic info from the request body if provided, else use defaults
+      user = await User.create({
+        clerkId: userId,
+        email: body.userEmail ?? `${userId}@unknown.clerk`,
+        firstName: body.firstName ?? '',
+        lastName: body.lastName ?? '',
+        role: 'CUSTOMER',
+      });
     }
 
     // Validate cart inventory

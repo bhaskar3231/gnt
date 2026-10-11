@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth, SignInButton } from "@clerk/nextjs";
+import { useAuth, useUser, SignInButton } from "@clerk/nextjs";
 
 interface CartItem {
   productVariantId: string;
@@ -43,6 +43,7 @@ const EMPTY_FORM: AddressForm = {
 
 export default function CheckoutPage() {
   const { isSignedIn, isLoaded } = useAuth();
+  const { user } = useUser();
   const router = useRouter();
 
   const [cart, setCart] = useState<Cart | null>(null);
@@ -124,6 +125,10 @@ export default function CheckoutPage() {
       shipping: 0,
       tax: 0,
       total: cart.total,
+      // Pass Clerk user info so the API can auto-create the MongoDB user if missing
+      userEmail: user?.primaryEmailAddress?.emailAddress ?? '',
+      firstName: user?.firstName ?? '',
+      lastName: user?.lastName ?? '',
     };
 
     try {
