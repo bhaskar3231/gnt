@@ -6,6 +6,8 @@ import { CartService } from '@/lib/services/CartService';
 import { ValidationService } from '@/lib/services/ValidationService';
 import { User } from '@/models/User';
 import { Order } from '@/models/Order';
+import { ProductVariant } from '@/models/ProductVariant';
+import { Product } from '@/models/Product';
 import { ApiResponse } from '@/types';
 
 /**
@@ -117,12 +119,37 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       );
     }
 
+    // Enrich order items with productName + priceSnapshot (required by Order schema)
+    // Cart items only store productVariantId/quantity/price — look up variant & product here
+    const enrichedItems = await Promise.all(
+      items.map(async (item: { productVariantId: string; quantity: number; price: number }) => {
+        const variant = await ProductVariant.findById(item.productVariantId);
+        let productName = 'Product';
+        if (variant) {
+          const product = await Product.findById(variant.productId);
+          if (product) productName = product.name;
+        }
+        return {
+          productVariantId: item.productVariantId,
+          quantity: item.quantity,
+          price: item.price,
+          productName,
+          priceSnapshot: {
+            variantName: variant?.name ?? '',
+            sku: variant?.sku ?? '',
+            price: item.price,
+            compareAtPrice: variant?.compareAtPrice ?? null,
+          },
+        };
+      })
+    );
+
     const resolvedPaymentMethod = paymentMethod || 'COD';
 
     // Create order — pass MongoDB _id (not Clerk userId) as customerId
     const order = await OrderService.createOrder({
       customerId: user._id.toString(),
-      items,
+      items: enrichedItems,
       shippingAddress,
       billingAddress: billingAddress || shippingAddress,
       couponCode,
@@ -146,7 +173,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     await OrderService.reserveInventory(order._id);
 
     // Clear user's cart
-    await CartService.clearCart(userId, undefined);
+    await CartService.clearCart(userId, null);
 
     return NextResponse.json({
       success: true,
@@ -155,10 +182,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     });
   } catch (error) {
     console.error('Order creation error:', error);
+    const isDev = process.env.NODE_ENV !== 'production';
     return NextResponse.json(
       {
         success: false,
-        message: 'Failed to create order',
+        message: isDev && error instanceof Error ? error.message : 'Failed to create order',
       },
       { status: 500 }
     );
