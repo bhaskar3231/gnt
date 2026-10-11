@@ -161,11 +161,20 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       tax: tax || 0,
     });
 
-    // For COD orders, immediately confirm the order
+    // For COD orders, immediately confirm the order and record both history entries
     if (resolvedPaymentMethod === 'COD') {
+      const now = new Date();
       await order.updateOne({
         status: 'CONFIRMED',
         'payment.status': 'PENDING',
+        $push: {
+          statusHistory: {
+            $each: [
+              { status: 'PENDING_PAYMENT', timestamp: order.createdAt ?? now },
+              { status: 'CONFIRMED', timestamp: now },
+            ],
+          },
+        },
       });
     }
 

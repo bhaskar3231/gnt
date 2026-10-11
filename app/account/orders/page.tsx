@@ -121,12 +121,20 @@ export default async function MyOrdersPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/orders/${(order as any)._id}`}
-                        className="text-indigo-600 hover:text-indigo-800 font-medium text-sm transition-colors"
-                      >
-                        View Order →
-                      </Link>
+                      <div className="flex items-center justify-end gap-4">
+                        <Link
+                          href={`/orders/${(order as any)._id}/tracking`}
+                          className="text-gray-500 hover:text-gray-800 font-medium text-sm transition-colors"
+                        >
+                          Track
+                        </Link>
+                        <Link
+                          href={`/orders/${(order as any)._id}`}
+                          className="text-indigo-600 hover:text-indigo-800 font-medium text-sm transition-colors"
+                        >
+                          View Order →
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -164,12 +172,20 @@ export default async function MyOrdersPage() {
                     {order.items.length === 1 ? "item" : "items"} · ₹
                     {order.total.toLocaleString("en-IN")}
                   </span>
-                  <Link
-                    href={`/orders/${(order as any)._id}`}
-                    className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
-                  >
-                    View →
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/orders/${(order as any)._id}/tracking`}
+                      className="text-gray-500 hover:text-gray-800 font-medium transition-colors"
+                    >
+                      Track
+                    </Link>
+                    <Link
+                      href={`/orders/${(order as any)._id}`}
+                      className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+                    >
+                      View →
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}

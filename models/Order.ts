@@ -10,6 +10,12 @@ export interface IOrderItem {
   giftMessage?: string;
 }
 
+export interface IStatusHistoryEntry {
+  status: string;
+  timestamp: Date;
+  note?: string;
+}
+
 export interface IOrder extends Document {
   orderNumber: string;
   customerId: mongoose.Types.ObjectId;
@@ -50,6 +56,7 @@ export interface IOrder extends Document {
     trackingNumber?: string;
     shippedAt?: Date;
   };
+  statusHistory: IStatusHistoryEntry[];
   status:
     | 'PENDING_PAYMENT'
     | 'CONFIRMED'
@@ -93,6 +100,15 @@ const orderItemSchema = new Schema<IOrderItem>(
     },
     giftWrapping: Boolean,
     giftMessage: String,
+  },
+  { _id: false }
+);
+
+const statusHistoryEntrySchema = new Schema<IStatusHistoryEntry>(
+  {
+    status: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+    note: { type: String },
   },
   { _id: false }
 );
@@ -179,6 +195,10 @@ const orderSchema = new Schema<IOrder>(
       ],
       default: 'PENDING_PAYMENT',
       index: true,
+    },
+    statusHistory: {
+      type: [statusHistoryEntrySchema],
+      default: [],
     },
     notes: String,
   },

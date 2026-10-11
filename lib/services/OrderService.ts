@@ -86,9 +86,13 @@ export class OrderService {
     newStatus: string,
     adminId?: string
   ) {
+    const historyEntry = { status: newStatus, timestamp: new Date() };
     const order = await Order.findByIdAndUpdate(
       orderId,
-      { status: newStatus },
+      {
+        status: newStatus,
+        $push: { statusHistory: historyEntry },
+      },
       { new: true }
     );
 

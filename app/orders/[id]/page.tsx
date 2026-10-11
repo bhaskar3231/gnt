@@ -129,6 +129,12 @@ export default async function OrderDetailPage({ params, searchParams }: PageProp
             >
               {order.status.replace(/_/g, " ")}
             </span>
+            <Link
+              href={`/orders/${params.id}/tracking`}
+              className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800 border border-indigo-200 hover:border-indigo-400 rounded-lg px-3 py-1.5 transition-colors"
+            >
+              Track Order
+            </Link>
             <PrintButton />
           </div>
         </div>
