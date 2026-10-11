@@ -116,20 +116,30 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       );
     }
 
-    // Create order
+    const resolvedPaymentMethod = paymentMethod || 'COD';
+
+    // Create order — pass MongoDB _id (not Clerk userId) as customerId
     const order = await OrderService.createOrder({
-      customerId: userId,
+      customerId: user._id.toString(),
       items,
       shippingAddress,
       billingAddress: billingAddress || shippingAddress,
       couponCode,
-      paymentMethod: paymentMethod || 'RAZORPAY',
+      paymentMethod: resolvedPaymentMethod,
       subtotal: subtotal || 0,
       total: total || 0,
       discount: discount || 0,
       shipping: shipping || 0,
       tax: tax || 0,
     });
+
+    // For COD orders, immediately confirm the order
+    if (resolvedPaymentMethod === 'COD') {
+      await order.updateOne({
+        status: 'CONFIRMED',
+        'payment.status': 'PENDING',
+      });
+    }
 
     // Reserve inventory for this order
     await OrderService.reserveInventory(order._id);

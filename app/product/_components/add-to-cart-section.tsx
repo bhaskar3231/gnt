@@ -26,6 +26,7 @@ function formatPrice(price: number) {
 export default function AddToCartSection({ variants, productId }: Props) {
   const [selectedVariant, setSelectedVariant] = useState<IProductVariant>(variants[0]);
   const [quantity, setQuantity] = useState(1);
+  const maxQty = selectedVariant.inventory > 0 ? Math.min(selectedVariant.inventory, 99) : 0;
   const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +67,7 @@ export default function AddToCartSection({ variants, productId }: Props) {
             {variants.map((v) => (
               <button
                 key={v._id}
-                onClick={() => setSelectedVariant(v)}
+                onClick={() => { setSelectedVariant(v); setQuantity(1); }}
                 className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
                   selectedVariant._id === v._id
                     ? "border-gray-900 bg-gray-900 text-white"
@@ -107,9 +108,10 @@ export default function AddToCartSection({ variants, productId }: Props) {
             {quantity}
           </span>
           <button
-            onClick={() => setQuantity((q) => Math.min(10, q + 1))}
-            disabled={quantity >= 10}
+            onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
+            disabled={quantity >= maxQty}
             className="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-lg font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            title={quantity >= maxQty ? `Maximum stock reached (${maxQty})` : undefined}
           >
             +
           </button>
@@ -122,9 +124,15 @@ export default function AddToCartSection({ variants, productId }: Props) {
       )}
 
       {/* Add to cart button */}
+      {maxQty === 0 && (
+        <p className="text-sm font-medium text-red-600">Out of stock</p>
+      )}
+      {quantity >= maxQty && maxQty > 0 && (
+        <p className="text-xs text-amber-600">Maximum stock reached ({maxQty} available)</p>
+      )}
       <button
         onClick={handleAddToCart}
-        disabled={loading || added}
+        disabled={loading || added || maxQty === 0}
         className={`w-full py-3 px-6 rounded-xl text-sm font-semibold transition-colors ${
           added
             ? "bg-green-600 text-white"

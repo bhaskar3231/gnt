@@ -175,12 +175,17 @@ export class CartService {
    */
   static async validateCartInventory(cart: ICart): Promise<boolean> {
     for (const item of cart.items) {
+      // First try the dedicated Inventory collection
       const inventory = await Inventory.findOne({
         productVariantId: item.productVariantId,
       });
 
-      if (!inventory || inventory.availableQuantity < item.quantity) {
-        return false;
+      if (inventory) {
+        if (inventory.availableQuantity < item.quantity) return false;
+      } else {
+        // Fall back to ProductVariant.inventory field
+        const variant = await ProductVariant.findById(item.productVariantId);
+        if (!variant || variant.inventory < item.quantity) return false;
       }
     }
 
