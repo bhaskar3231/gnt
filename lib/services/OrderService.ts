@@ -3,7 +3,7 @@
  * Business logic for order operations
  */
 
-import { Order, Inventory, Product, User, AuditLog } from '@/models';
+import { Order, Inventory, Product, ProductVariant, User, AuditLog } from '@/models';
 import { generateOrderNumber } from '@/lib/utils/format';
 import { ORDER_STATUSES, PAYMENT_STATUSES } from '@/lib/constants';
 import { Types } from 'mongoose';
@@ -151,19 +151,25 @@ export class OrderService {
         productVariantId: item.productVariantId,
       });
 
-      if (!inventory) {
-        throw new Error(
-          `Inventory not found for variant ${item.productVariantId}`
-        );
+      if (inventory) {
+        if (inventory.availableQuantity < item.quantity) {
+          throw new Error(`Insufficient inventory for variant ${item.productVariantId}`);
+        }
+        inventory.reservedQuantity += item.quantity;
+        inventory.availableQuantity -= item.quantity;
+        await inventory.save();
+      } else {
+        // Fall back to ProductVariant.inventory field (no separate Inventory doc)
+        const variant = await ProductVariant.findById(item.productVariantId);
+        if (!variant) {
+          throw new Error(`Variant not found: ${item.productVariantId}`);
+        }
+        if (variant.inventory < item.quantity) {
+          throw new Error(`Insufficient inventory for variant ${item.productVariantId}`);
+        }
+        variant.inventory -= item.quantity;
+        await variant.save();
       }
-
-      if (inventory.availableQuantity < item.quantity) {
-        throw new Error(`Insufficient inventory for variant ${item.productVariantId}`);
-      }
-
-      inventory.reservedQuantity += item.quantity;
-      inventory.availableQuantity -= item.quantity;
-      await inventory.save();
     }
   }
 
